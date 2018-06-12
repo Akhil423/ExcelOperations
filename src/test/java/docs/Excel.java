@@ -1,4 +1,4 @@
-package xlsx;
+package docs;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.poi.hssf.model.InternalWorkbook;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -27,18 +28,69 @@ import org.w3c.dom.NodeList;
 public class Excel {
 
 	
-	String path,path1,name;
+	String Excelpath,xmlpath,name,ExistingFilePath;
 	FileOutputStream out;
 	
 	XSSFWorkbook ExcelXWBook;
 	HSSFWorkbook ExcelHWBook;
 	File ExcelFolder,XmlFolder;
 	
-		public Excel(String name) {
+	
+	// constructor when used existing excel file
+		public Excel(String name) throws Exception {
 			
 			
-			ExcelFolder= new File(new File("").getAbsolutePath()+File.separator+"ExcelOps");
-			XmlFolder= new File(new File("").getAbsolutePath()+File.separator+"Xml");
+			FileInputStream ExcelFile = getExcelPath(name);
+			
+			if((FilenameUtils.getExtension(name)).equalsIgnoreCase("xlsx")) {
+				
+				
+				 ExcelXWBook = new XSSFWorkbook(ExcelFile);
+				 System.out.println("workbook created");
+				
+			}
+			else if(FilenameUtils.getExtension(name).equalsIgnoreCase("xls")){
+				
+					 ExcelHWBook = new HSSFWorkbook(ExcelFile);
+				
+			}
+				
+				this.ExistingFilePath = name;
+			
+		}
+		
+		
+		// constructor if you want to create new workbook and do operations on it 
+		public Excel() {
+			// TODO Auto-generated constructor stub
+		}
+
+
+		// returns Input stream of particular excel
+		public FileInputStream getExcelPath(String path) throws Exception{
+			return new FileInputStream(new File(path));
+		}
+		
+		
+		// creates output stream of excel according file existence and vice versa
+		public FileOutputStream output(boolean exist) throws FileNotFoundException {
+			
+			if(exist)
+			return new FileOutputStream(ExistingFilePath);
+			else
+				return new FileOutputStream(Excelpath+File.separator+name);
+		}
+		
+		
+		//function to create new work book
+		public void createXSSFBook(String name) {
+			
+
+			ExcelFolder= new File(new File("").getAbsolutePath()+File.separator+"ExcelOps");  // Folder to store excel files created dynamically
+			
+			XmlFolder= new File(new File("").getAbsolutePath()+File.separator+"Xml");    // Folder to store xml files created dynamically
+			
+			// creating folders according to their existence
 			if(ExcelFolder.exists() ){
 				
 				System.out.println("file already exists");
@@ -59,8 +111,8 @@ public class Excel {
 			
 			
 			this.name   = name;
-		    this.path  	= ExcelFolder.getPath();
-		    this.path1	= XmlFolder.getPath();
+		    this.Excelpath  	= ExcelFolder.getPath();
+		    this.xmlpath	= XmlFolder.getPath();
 		    
 		    
 			if((FilenameUtils.getExtension(name)).equalsIgnoreCase("xlsx")) {
@@ -74,15 +126,19 @@ public class Excel {
 					 ExcelHWBook = new HSSFWorkbook();
 				
 			}
-			
 		}
 		
 		
-		public XSSFSheet CreateXSSFSheet( String name) {
+		// function to create XSSFSheet by passing sheet name
+		public XSSFSheet CreateXSSFSheet( String name,boolean existence) {
 			try {
+
+			
+					out  = output(existence);
 				
 			XSSFSheet ExcelWSheet = ExcelXWBook.createSheet(name);
 				
+			ExcelXWBook.write(out);
 				return ExcelWSheet;
 		
 		} catch(Exception e) {
@@ -90,11 +146,16 @@ public class Excel {
 		}
 		}
 		
-		public HSSFSheet CreateHSSFSheet(String name) {
+		// function to create HSSFSheet by passing sheet name
+		public HSSFSheet CreateHSSFSheet(String name,boolean existence) {
 			try {
 				
+
+				out  = output(existence);
+					
 				HSSFSheet ExcelWSheet = ExcelHWBook.createSheet(name);
 				
+				ExcelHWBook.write(out);
 				return ExcelWSheet;
 		
 		} catch(Exception e) {
@@ -103,34 +164,17 @@ public class Excel {
 		}
 		
 		
-		public FileOutputStream output() throws FileNotFoundException {
-			
-			return new FileOutputStream(path+File.separator+name);
-		}
 		
-		/** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-		 * Function 				- Get XSSF Sheet's Object
-		 * @param ExcelWBook		- Excel work book
-		 * @param sheet				- Sheet name(Also accept sheet number except 0)
-		 * @return ExcelWSheet		- XSSF Sheet's Object
-		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
-		public XSSFSheet getXSSFSheetObject(String sheet) {
+		// function to get XSSFSheet by passing sheet number
+		public XSSFSheet getXSSFSheetObject(int sheetNum) {
 			
-			
-			
-			try{
 			
 				XSSFSheet ExcelWSheet;
 				
-				ExcelWSheet = ExcelXWBook.getSheet(sheet);
+				ExcelWSheet = ExcelXWBook.getSheetAt(sheetNum);
 				
-			System.out.println(ExcelWSheet.toString());
 				return ExcelWSheet;
-				
-			} catch(Exception e) {
-				return null;
-			}
+			
 		}
 		
 		
@@ -141,26 +185,33 @@ public class Excel {
 		 * @return ExcelWSheet		- HSSF Sheet's Object
 		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		public HSSFSheet getHSSFSheetObject(String sheet) {
+		// function to get HSSFSheet by passing sheet number
+		public HSSFSheet getHSSFSheetObject(int sheetNum) {
 			
 				HSSFSheet ExcelWSheet;
 				
-					ExcelWSheet 	= ExcelHWBook.getSheet(sheet);
+				ExcelWSheet = ExcelHWBook.getSheetAt(sheetNum);
 				
 				return ExcelWSheet;
 				}
 		
-		public void createXSSFRows(int Rows,int cols, XSSFSheet sheet )  {
+		// function to create rows in XSSFsheet by passing sheet 
+		public void createXSSFRows(int Rows,int cols, XSSFSheet sheet,boolean existence )  {
 			
 			try {
 				
+				out  = output(existence);
 				
-			 out  = output();
-			 
 			 int rowNum = 0,Columns = cols,columnNum;
 			 
 			 try {
-			//rowNum=sheet.getLastRowNum();Columns=sheet.getRow(0).getLastCellNum();columnNum=0;
+				 if(sheet.getLastRowNum()!= 0)
+					 rowNum=sheet.getLastRowNum();
+				 
+				 if(sheet.getRow(0).getLastCellNum()!= 0)
+				 Columns=sheet.getRow(0).getLastCellNum();
+				 
+				 columnNum=0;
 			 }catch(Exception e) {
 				 
 				 e.printStackTrace();
@@ -195,28 +246,40 @@ public class Excel {
 			
 		}
 		
-		public void createHSSFRows(int Rows, HSSFSheet sheet )  {
+		// function to create rows in HSSFsheet by passing sheet 
+		public void createHSSFRows(int Rows,int cols, HSSFSheet sheet, boolean existence )  {
 			
 			try {
 				
+				out  = output(existence);
 				
-			 out  = output();
-			int rowNum=sheet.getLastRowNum(),Columns=sheet.getRow(0).getLastCellNum(),columnNum=0;
-			Rows= rowNum+Rows;
-			
-			for(int row=rowNum;row<Rows;++row){
+				 int rowNum = 0,Columns = cols,columnNum;
+				 
+				 try {
+					 if(sheet.getLastRowNum()!= 0)
+						 rowNum=sheet.getLastRowNum();
+					 
+					 if(sheet.getRow(0).getLastCellNum()!= 0)
+					 Columns=sheet.getRow(0).getLastCellNum();
+					 
+					 columnNum=0;
+				 }catch(Exception e) {
+					 
+					 e.printStackTrace();
+				 }
+				Rows= rowNum+Rows;
 				
-				Row roow=sheet.createRow(row);
-				
-				for(columnNum=0;columnNum<Columns;columnNum++) {
+				for(int row=rowNum;row<Rows;++row){
 					
-					Cell cell = roow.createCell(columnNum);
-					//cell.setCellValue("test");
-		           
+					Row roow=sheet.createRow(row);
+					
+					for(columnNum=0;columnNum<Columns;columnNum++) {
+						
+						roow.createCell(columnNum);
+			           
+					}
 				}
-			}
-			
-			ExcelXWBook.write(out);
+			ExcelHWBook.write(out);
 			out.close();
 			
 			}
@@ -231,12 +294,13 @@ public class Excel {
 			
 		}
 		
-		public void createXSSFRows(int Rows,Object data[][], XSSFSheet sheet )  {
+		// function to fill rows in XSSFsheet by passing data Object,sheet 
+		public void FillXSSFRows(Object data[][], XSSFSheet sheet, boolean existence )  {
 			
 			try {
 				
+				out  = output(existence);
 				
-			 out  = output();
 			int rowNum=0,columnNum=0;
 			for(Object[] row:data){
 				Row roow=sheet.createRow(rowNum++);
@@ -253,10 +317,6 @@ public class Excel {
 			ExcelXWBook.write(out);
 			out.close();
 			}
-			catch(IOException e) {
-				
-				e.printStackTrace();
-			}
 			catch(Exception e) {
 				
 				e.printStackTrace();
@@ -264,10 +324,12 @@ public class Excel {
 			
 		}
 		
-		public void createHSSFRows(int Rows, int Cols, Object[][] data, HSSFSheet sheet )  {
+		// function to fill rows in HSSFsheet by passing data Object,sheet 
+		public void FillHSSFRows(Object[][] data, HSSFSheet sheet, boolean existence )  {
 			try {
 				
-				 out  = output();
+				out  = output(existence);
+				
 			int rowNum=0,columnNum=0;
 			for(Object[] row:data){
 				Row roow=sheet.createRow(rowNum++);
@@ -285,16 +347,13 @@ public class Excel {
 			ExcelHWBook.write(out);
 			out.close();
 			}
-			catch(IOException e) {
-						
-				e.printStackTrace();
-					}
-					catch(Exception e) {
+			catch(Exception e) {
 						
 						e.printStackTrace();
 					}
 				}
 		
+		// function to initialize Header in XSSFsheet by passing data Object,sheet 
 		public void HeaderRow(Object[] data, XSSFSheet sheet) {
 			
 		        Row row = sheet.getRow(0);
@@ -315,16 +374,37 @@ public class Excel {
 		        
 		     }
 		
+		// function to Initialize Header in XSSFsheet by passing data Object,sheet 
+		public void HeaderRow(Object[] data, HSSFSheet sheet) {
+			
+		        Row row = sheet.getRow(0);
+		        int columns = 0;
+		        for(Object field:data) {
+		        	
+		        	Cell cell= row.getCell(columns++);
+		        	
+		        //	System.out.println(cell.getCellType());
+		        	
+		        	if (field instanceof String) {
+		                cell.setCellValue((String) field);
+		            } else if (field instanceof Integer) {
+		                cell.setCellValue((Integer) field);
+		            }
+		        	
+		        }
+		        
+		     }
 		
 		
-		public void createXSSFRows(String file, XSSFSheet sheet )  {
+		// function to fill rows in XSSFsheet by passing xml file,sheet 
+		public void FillXSSFRows(String file, XSSFSheet sheet )  {
 				
 				try {
 					
 					if((FilenameUtils.getExtension(file)).equalsIgnoreCase("xml")) {
 		
 						
-						File inputFile = new File(path1+File.separator+file);
+						File inputFile = new File(xmlpath+File.separator+file);
 				         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 				         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 				         Document doc = dBuilder.parse(inputFile);
@@ -333,7 +413,7 @@ public class Excel {
 				         NodeList nList = doc.getElementsByTagName("student");
 				         
 				         
-						out  = output();
+					//	out  = output();
 				
 						int columns =0;
 						
@@ -379,7 +459,8 @@ public class Excel {
 				
 			}
 		
-		public int getRowCount(String name, int sheetNo) throws Exception {
+		 // function to get row count by passing sheet number
+		public int getRowCount(int sheetNo) throws Exception {
 			
 				int totRowCount 					= 0;
 				
@@ -404,6 +485,7 @@ public class Excel {
 					return totRowCount;
 				}
 		
+		// function to get row number of XSSFSheet value by passing sheet and value
 		@SuppressWarnings("deprecation")
 		public int getRowNumber(XSSFSheet sheet, String searchValue) {
 				
@@ -422,19 +504,66 @@ public class Excel {
 				return 0;
 			}
 		
+		// function to get row number of HSSFSheet value by passing sheet and value
+		@SuppressWarnings("deprecation")
+		public int getRowNumber(HSSFSheet sheet, String searchValue) {
+				
+				try {
+					
+					for (Row row : sheet) 
+						for (Cell cell : row) 
+							if (cell.getCellType() == Cell.CELL_TYPE_STRING) 
+								if (cell.getRichStringCellValue().getString().trim().equalsIgnoreCase(searchValue)) 
+									return row.getRowNum();
+					
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+				
+				return 0;
+			}
 		
-		 public void setCellData(String FileName, int rownum, int columnum, String value)  {
+		// function to set value in particular cell of XSSFSheet by passing sheet,row number, column number, value
+		 public void setCellData(XSSFSheet sheet, int rownum, int columnum, String value, boolean existence)  {
 			
 				try {
 				
-			        // Open work book
-			        XSSFSheet sheet 				= ExcelXWBook.getSheetAt(0);							// Open work sheet 																					// Get Row Number
+					out  = output(existence);	
+					// Get Row Number
+			        Row row 						= sheet.getRow(rownum);
+			        Cell cell 						= row.getCell(columnum);  
+			        
+			        cell.setCellValue(value);
+			    	
+			        ExcelXWBook.write(out);
+			        out.close();
+					
+				} 
+				catch(IOException e) {
+					
+					e.printStackTrace();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				
+			}
+		 
+		// function to set value in particular cell of HSSFSheet by passing sheet,row number, column number, value
+		 public void setCellData(HSSFSheet sheet, int rownum, int columnum, String value, boolean existence)  {
+				
+				try {
+				
+					out  = output(existence);
+			        
+			       																									// Get Row Number
 			        Row row 						= sheet.getRow(rownum);
 			        Cell cell 						= row.getCell(columnum);  
 			        cell.setCellValue(value);
-			        
-			        out						= output();
-			        ExcelXWBook.write(out);
+			    
+			    	
+			        ExcelHWBook.write(out);
 			        out.close();
 					
 				} 
@@ -450,21 +579,19 @@ public class Excel {
 			}
 
 
-		public String getCellData(int rownum, int columnum) {
+		// function to get value in particular cell of XSSFSheet by passing sheet,row number, column number
+		public String getCellData(XSSFSheet sheet,int rownum, int columnum, boolean existence) {
 				
 				String value  = "";
 				try {
 				
-				
-					// Open work book
-					
-			        XSSFSheet sheet 				= ExcelXWBook.getSheetAt(0);							// Open work sheet 																					// Get Row Number
+					out  = output(existence);
+																					// Get Row Number
 			        Row row 						= sheet.getRow(rownum);
 			        Cell cell 						= row.getCell(columnum);
 			        
 			        value  =  cell.getStringCellValue();
-			        
-			        out							= output();
+			    	
 			        
 			        ExcelXWBook.write(out);
 			        out.close();
@@ -481,10 +608,41 @@ public class Excel {
 				return value;
 		
 		}
+		
+		// function to get value in particular cell of HSSFSheet by passing sheet,row number, column number
+		public String getCellData(HSSFSheet sheet,int rownum, int columnum, boolean existence) {
+			
+			String value  = "";
+			try {
+			
+				out  = output(existence);
+																				// Get Row Number
+		        Row row 						= sheet.getRow(rownum);
+		        Cell cell 						= row.getCell(columnum);
+		        
+		        value  =  cell.getStringCellValue();
+		        
+		    	
+		        
+		        ExcelXWBook.write(out);
+		        out.close();
+		        return value;
+			}
+			catch(IOException e) {
+				
+				e.printStackTrace();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return value;
+	
+	}
 	
 	
 	
-	
+		// function to get number of sheets present in particular workbook
 		public int getNumberOfSheets(String WorkBookName) {
 		
 				int numOfSheets 			= 0;
@@ -493,7 +651,7 @@ public class Excel {
 				
 					numOfSheets 			= ExcelXWBook.getNumberOfSheets();
 			
-				} else if((FilenameUtils.getExtension(path)).equalsIgnoreCase("xls")) {
+				} else if((FilenameUtils.getExtension(Excelpath)).equalsIgnoreCase("xls")) {
 					
 					numOfSheets 			= ExcelHWBook.getNumberOfSheets();
 				}
@@ -503,13 +661,13 @@ public class Excel {
 		}
 	
 	
-	
-		public ArrayList<String> getRow(XSSFSheet sheetName, int rownum){
+		// function to get complete row in XSSFsheet by passing sheet, row number 
+		public ArrayList<String> getRow(XSSFSheet sheet, int rownum){
 		
 				ArrayList<String> list = new ArrayList<String>();
 				
-				Row row  = sheetName.getRow(rownum);
-				int numofColumns = sheetName.getRow(0).getLastCellNum();
+				Row row  = sheet.getRow(rownum);
+				int numofColumns = sheet.getRow(0).getLastCellNum();
 				String val = "";
 				for(int colCounter = 0 ; colCounter < numofColumns; colCounter++) {
 					
@@ -529,7 +687,34 @@ public class Excel {
 			return list;
 		}
 	
-		public LinkedHashMap<String, ArrayList<String>> getSheetData( String sheetNum) {
+		// function to get complete row in HSSFsheet by passing sheet, row number 
+		public ArrayList<String> getRow(HSSFSheet sheet, int rownum){
+			
+			ArrayList<String> list = new ArrayList<String>();
+			
+			Row row  = sheet.getRow(rownum);
+			int numofColumns = sheet.getRow(0).getLastCellNum();
+			String val = "";
+			for(int colCounter = 0 ; colCounter < numofColumns; colCounter++) {
+				
+				Cell cell 							= row.getCell(colCounter);
+				
+				if(cell.getCellType()==0) {
+					val 						= Double.toString(cell.getNumericCellValue());
+		    	} else if(cell.getCellType()==1) {
+		    		val 						= cell.getStringCellValue();
+		    	} else if (cell.getCellType()==3) {
+		    		val 						= "";
+		    	}
+				
+				 list.add(val);
+			}
+		
+		return list;
+	}
+		
+		// function to get sheet data in hash map by passing sheet number
+		public LinkedHashMap<String, ArrayList<String>> getSheetData( int sheetNum) {
 		
 				LinkedHashMap<String, ArrayList<String>> map 	= new LinkedHashMap<String, ArrayList<String>>();
 				
