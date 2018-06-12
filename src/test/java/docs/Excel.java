@@ -30,34 +30,34 @@ import org.w3c.dom.NodeList;
 public class Excel {
 
 	
-	String Excelpath,xmlpath,name,ExistingFilePath;
+	String excelFolderPath,xmlFolderPath,name,existingFilePath;
 	FileOutputStream out;
 	
 	Workbook excelWorkBook;
 	
-	File ExcelFolder,XmlFolder;
+	File excelFolder,xmlFolder;
 	boolean existence= false;
 	
 	// constructor when used existing excel file
-		public Excel(String name) throws Exception {
+		public Excel(String FilePath) throws Exception {
 			
 			
-			FileInputStream ExcelFile = getExcelPath(name);
+			FileInputStream ExcelFile = getExcelFile(FilePath);
 			
-			if((FilenameUtils.getExtension(name)).equalsIgnoreCase("xlsx")) {
+			if((FilenameUtils.getExtension(FilePath)).equalsIgnoreCase("xlsx")) {
 				
 				
 				 excelWorkBook = new XSSFWorkbook(ExcelFile);
 				 System.out.println("workbook created");
 				
 			}
-			else if(FilenameUtils.getExtension(name).equalsIgnoreCase("xls")){
+			else if(FilenameUtils.getExtension(FilePath).equalsIgnoreCase("xls")){
 				
 				excelWorkBook = new HSSFWorkbook(ExcelFile);
 				
 			}
 				
-				this.ExistingFilePath = name;
+				this.existingFilePath = FilePath;
 				this.existence = true;
 			
 		}
@@ -70,7 +70,7 @@ public class Excel {
 
 
 		// returns Input stream of particular excel
-		public FileInputStream getExcelPath(String path) throws Exception{
+		public FileInputStream getExcelFile(String path) throws Exception{
 			return new FileInputStream(new File(path));
 		}
 		
@@ -79,9 +79,9 @@ public class Excel {
 		public FileOutputStream output(boolean exist) throws FileNotFoundException {
 			
 			if(exist)
-			return new FileOutputStream(ExistingFilePath);
+			return new FileOutputStream(existingFilePath);
 			else
-				return new FileOutputStream(Excelpath+File.separator+name);
+				return new FileOutputStream(excelFolderPath+File.separator+name);
 		}
 		
 		
@@ -89,33 +89,33 @@ public class Excel {
 		public void createBook(String name) {
 			
 
-			ExcelFolder= new File(new File("").getAbsolutePath()+File.separator+"ExcelOps");  // Folder to store excel files created dynamically
+			excelFolder= new File(new File("").getAbsolutePath()+File.separator+"ExcelOps");  // Folder to store excel files created dynamically
 			
-			XmlFolder= new File(new File("").getAbsolutePath()+File.separator+"Xml");    // Folder to store xml files created dynamically
+			xmlFolder= new File(new File("").getAbsolutePath()+File.separator+"Xml");    // Folder to store xml files created dynamically
 			
 			// creating folders according to their existence
-			if(ExcelFolder.exists() ){
+			if(excelFolder.exists() ){
 				
 				System.out.println("file already exists");
 			}
 			else {
 				
-				ExcelFolder.mkdir();
+				excelFolder.mkdir();
 			}
 			
-			if(XmlFolder.exists() ){
+			if(xmlFolder.exists() ){
 				
 				System.out.println("file already exists");
 			}
 			else {
 				
-				XmlFolder.mkdir();
+				xmlFolder.mkdir();
 			}
 			
 			
 			this.name   = name;
-		    this.Excelpath  	= ExcelFolder.getPath();
-		    this.xmlpath	= XmlFolder.getPath();
+		    this.excelFolderPath  	= excelFolder.getPath();
+		    this.xmlFolderPath	= xmlFolder.getPath();
 		    
 		    
 			if((FilenameUtils.getExtension(name)).equalsIgnoreCase("xlsx")) {
@@ -133,7 +133,7 @@ public class Excel {
 		
 		
 		// function to create Sheet by passing sheet name
-		public Sheet CreateSheet( String name) {
+		public Sheet createSheet( String name) {
 			try {
 
 			
@@ -165,10 +165,10 @@ public class Excel {
 		
 		
 		// function to create rows in sheet by passing sheet 
-		public void createRows(int Rows,int cols, Sheet sheet,boolean existence )  {
+		public void createRows(int Rows,int cols, Sheet sheet )  {
 			
 			try {
-				
+		
 				out  = output(existence);
 				
 			 int rowNum = 0,Columns = cols,columnNum;
@@ -249,7 +249,7 @@ public class Excel {
 		
 		
 		// function to initialize Header in sheet by passing data Object,sheet 
-		public void HeaderRow(Object[] data, Sheet sheet) {
+		public void headerRow(Object[] data, Sheet sheet) {
 			
 		        Row row = sheet.getRow(0);
 		        int columns = 0;
@@ -272,14 +272,14 @@ public class Excel {
 	
 		
 		// function to fill rows in sheet by passing xml file,sheet 
-		public void FillRows(String file, Sheet sheet )  {
+		public void fillRows(String file, Sheet sheet )  {
 				
 				try {
 					
 					if((FilenameUtils.getExtension(file)).equalsIgnoreCase("xml")) {
 		
 						
-						File inputFile = new File(xmlpath+File.separator+file);
+						File inputFile = new File(xmlFolderPath+File.separator+file);
 				         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 				         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 				         Document doc = dBuilder.parse(inputFile);
@@ -446,7 +446,7 @@ public class Excel {
 				
 					numOfSheets 			= excelWorkBook.getNumberOfSheets();
 			
-				} else if((FilenameUtils.getExtension(Excelpath)).equalsIgnoreCase("xls")) {
+				} else if((FilenameUtils.getExtension(excelFolderPath)).equalsIgnoreCase("xls")) {
 					
 					numOfSheets 			= excelWorkBook.getNumberOfSheets();
 				}
@@ -489,7 +489,6 @@ public class Excel {
 		
 				LinkedHashMap<String, ArrayList<String>> map 	= new LinkedHashMap<String, ArrayList<String>>();
 				
-				if(FilenameUtils.getExtension(name).equalsIgnoreCase("xlsx")) {
 					
 					try {
 						
@@ -534,15 +533,11 @@ public class Excel {
 						} catch(Exception e) {
 							System.out.println(e.getMessage());
 						}
-					}
+					
 					
 					return map;
 			
 		}
-	
-	
-		
-		
 	
 	
 }

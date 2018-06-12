@@ -7,15 +7,17 @@ public class Ops {
 	
 	public static void main(String args[]) throws Exception {
 		
-		Excel obj   = new Excel("D:\\ExcelOperations\\ExcelOps\\bookxml.xlsx");
+		Excel obj   = new Excel();
+		
+		obj.createBook("akhil.xlsx");
 		
 		Object data[][]= {{"rollno","firstname","lastname","nickname","marks"}};
 		
-		obj.CreateSheet("sheet8");
+		obj.createSheet("sheet1");
 		
-		obj.CreateSheet("sheet9");
+		obj.createSheet("sheet2");
 		
-		obj.fillRows(data, obj.getSheetObject(2));
+		obj.fillRows(data, obj.getSheetObject(1));
 		
 		
 		
