@@ -11,15 +11,14 @@ public class Ops {
 		
 		Object data[][]= {{"rollno","firstname","lastname","nickname","marks"}};
 		
-		obj.CreateXSSFSheet("sheet2",true);
+		obj.CreateSheet("sheet8");
 		
-		obj.CreateXSSFSheet("sheet6", true);
+		obj.CreateSheet("sheet9");
 		
-		obj.FillXSSFRows(data, obj.getXSSFSheetObject(2), true);
+		obj.fillRows(data, obj.getSheetObject(2));
+		
 		
 		
 
-		
-		
 	}
 }
